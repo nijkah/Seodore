@@ -7,7 +7,7 @@ This codebase is based on
 - [mmdetection](https://github.com/open-mmlab/mmdetection)
 - [AerialDetection](https://github.com/dingjiansw101/AerialDetection)
 
-Motivation of this repostiory is to provide a sustainable framework following recent updates of mmdetection.
+Motivation of this repostiory is to provide a sustainable framework maintaining recent updates of mmdetection.
 
 
 ![detected_results](results.jpg)
