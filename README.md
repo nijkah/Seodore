@@ -1,7 +1,7 @@
 
 # Satellite Imagery Object Detection for Rotated Objects
 
-! I am going to migrate this project into mmdetection, since it will be more easy and faster to follow the updates of mmdetection.
+**! I am going to migrate this project into mmdetection, since it will be more easy and faster to follow the updates of mmdetection.**
 
 
 Sedore is a object detection framework for rotated objects.
