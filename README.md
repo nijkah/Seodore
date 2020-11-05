@@ -9,7 +9,7 @@ This codebase is based on
 Motivation of this repostiory is to provide a sustainable framework maintaining recent updates of mmdetection.
 
 
-![detected_results](results.jpg)
+![detected_results](results.png)
 ### Main Features
 To adapt to object detection in aerial images, this repo has several unique and new features compared to the original [mmdetection](https://github.com/open-mmlab/mmdetection)
 - **Support Oriented Object Detection**
