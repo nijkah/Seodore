@@ -29,7 +29,7 @@ from DOTA_devkit.ResultMerge_multi_process import *
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
     parser.add_argument('--config', default='configs/DOTA/faster_rcnn_r101_fpn_1x_dota2_v3_RoITrans_v5.py')
-    parser.add_argument('--type', default=r'HBB',
+    parser.add_argument('--type', default=r'OBB',
                         help='parse type of detector')
     args = parser.parse_args()
 

@@ -140,7 +140,6 @@ def _dist_train(model, dataset, cfg, validate=False, **kwargs):
             dataset,
             cfg.data.imgs_per_gpu,
             cfg.data.workers_per_gpu,
-            logger,
             dist=True,
             repeat_samples=cfg.train_cfg.repeat_samples,
             **kwargs)
@@ -151,6 +150,7 @@ def _dist_train(model, dataset, cfg, validate=False, **kwargs):
     optimizer = build_optimizer(model, cfg.optimizer)
     runner = EpochBasedRunner(
         model,
+        #batch_processor=batch_processor,
         optimizer=optimizer,
         work_dir=cfg.work_dir,
         logger=logger)
@@ -191,7 +191,6 @@ def _non_dist_train(model, dataset, cfg, validate=False, **kwargs):
             cfg.data.imgs_per_gpu,
             cfg.data.workers_per_gpu,
             cfg.gpus,
-            logger,
             dist=False,
             repeat_samples=cfg.train_cfg.repeat_samples,
             **kwargs)
@@ -202,6 +201,7 @@ def _non_dist_train(model, dataset, cfg, validate=False, **kwargs):
     optimizer = build_optimizer(model, cfg.optimizer)
     runner = EpochBasedRunner(
         model,
+        #batch_processor=batch_processor,
         optimizer=optimizer,
         work_dir=cfg.work_dir,
         logger=logger)

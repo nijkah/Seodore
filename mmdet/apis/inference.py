@@ -75,7 +75,7 @@ def _prepare_data(img, img_transform, cfg, device):
         scale=cfg.data.test.img_scale,
         keep_ratio=cfg.data.test.get('resize_keep_ratio', True))
     img = to_tensor(img).to(device).unsqueeze(0)
-    img_meta = [
+    img_metas = [
         dict(
             ori_shape=ori_shape,
             img_shape=img_shape,
@@ -83,7 +83,7 @@ def _prepare_data(img, img_transform, cfg, device):
             scale_factor=scale_factor,
             flip=False)
     ]
-    return dict(img=[img], img_meta=[img_meta])
+    return dict(img=[img], img_metas=[img_metas])
 
 
 def _inference_single(model, img, img_transform, device):
@@ -177,7 +177,8 @@ def draw_poly_detections(img, detections, class_names, scale, threshold=0.2):
             for i in range(3):
                 cv2.line(img, (bbox[i * 2], bbox[i * 2 + 1]), (bbox[(i+1) * 2], bbox[(i+1) * 2 + 1]), color=color, thickness=2)
             cv2.line(img, (bbox[6], bbox[7]), (bbox[0], bbox[1]), color=color, thickness=2)
-            cv2.putText(img, '%s %.3f' % (class_names[j], score), (bbox[0], bbox[1] + 10),
-                        color=color_white, fontFace=cv2.FONT_HERSHEY_COMPLEX, fontScale=0.5)
+            if class_names[j] != '':
+                cv2.putText(img, '%s %.3f' % (class_names[j], score), (bbox[0], bbox[1] + 10),
+                            color=color_white, fontFace=cv2.FONT_HERSHEY_COMPLEX, fontScale=0.5)
     return img
 

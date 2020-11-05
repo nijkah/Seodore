@@ -3,14 +3,14 @@
 #include <cmath>
 #include <vector>
 
-int ROIAlignRotatedForwardLaucher(const at::Tensor features, const at::Tensor rois,
+int ROIAlignRotatedForwardCUDAKernelLauncher(const at::Tensor features, const at::Tensor rois,
                             const float spatial_scale, const int sample_num,
                             const int channels, const int height,
                             const int width, const int num_rois,
                             const int pooled_height, const int pooled_width,
                             at::Tensor output);
 
-int ROIAlignRotatedBackwardLaucher(const at::Tensor top_grad, const at::Tensor rois,
+int ROIAlignRotatedBackwardCUDAKernelLauncher(const at::Tensor top_grad, const at::Tensor rois,
                                    const float spatial_scale, const int sample_num,
                                    const int channels, const int height,
                                    const int width, const int num_rois,
@@ -45,7 +45,7 @@ int roi_align_rotated_forward_cuda(at::Tensor features, at::Tensor rois,
   int data_height = features.size(2);
   int data_width = features.size(3);
 
-  ROIAlignRotatedForwardLaucher(features, rois, spatial_scale, sample_num,
+  ROIAlignRotatedForwardCUDAKernelLauncher(features, rois, spatial_scale, sample_num,
                          num_channels, data_height, data_width, num_rois,
                          pooled_height, pooled_width, output);
 
@@ -72,7 +72,7 @@ int roi_align_rotated_backward_cuda(at::Tensor top_grad, at::Tensor rois,
   int data_height = bottom_grad.size(2);
   int data_width = bottom_grad.size(3);
 
-  ROIAlignRotatedBackwardLaucher(top_grad, rois, spatial_scale, sample_num,
+  ROIAlignRotatedBackwardCUDAKernelLauncher(top_grad, rois, spatial_scale, sample_num,
                           num_channels, data_height, data_width, num_rois,
                           pooled_height, pooled_width, bottom_grad);
 

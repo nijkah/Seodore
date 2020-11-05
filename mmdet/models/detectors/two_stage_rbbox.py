@@ -90,7 +90,8 @@ class TwoStageDetectorRbbox(BaseDetector, RPNTestMixin, BBoxTestMixin,
 
     def forward_train(self,
                       img,
-                      img_meta,
+                      #img_meta,
+                      img_metas,
                       gt_bboxes,
                       gt_labels,
                       gt_bboxes_ignore=None,
@@ -103,7 +104,8 @@ class TwoStageDetectorRbbox(BaseDetector, RPNTestMixin, BBoxTestMixin,
         # RPN forward and loss
         if self.with_rpn:
             rpn_outs = self.rpn_head(x)
-            rpn_loss_inputs = rpn_outs + (gt_bboxes, img_meta,
+            #rpn_loss_inputs = rpn_outs + (gt_bboxes, img_meta,
+            rpn_loss_inputs = rpn_outs + (gt_bboxes, img_metas,
                                           self.train_cfg.rpn)
             rpn_losses = self.rpn_head.loss(
                 *rpn_loss_inputs, gt_bboxes_ignore=gt_bboxes_ignore)
@@ -111,7 +113,8 @@ class TwoStageDetectorRbbox(BaseDetector, RPNTestMixin, BBoxTestMixin,
 
             proposal_cfg = self.train_cfg.get('rpn_proposal',
                                               self.test_cfg.rpn)
-            proposal_inputs = rpn_outs + (img_meta, proposal_cfg)
+            #proposal_inputs = rpn_outs + (img_meta, proposal_cfg)
+            proposal_inputs = rpn_outs + (img_metas, proposal_cfg)
             proposal_list = self.rpn_head.get_bboxes(*proposal_inputs)
         else:
             proposal_list = proposals
@@ -197,17 +200,20 @@ class TwoStageDetectorRbbox(BaseDetector, RPNTestMixin, BBoxTestMixin,
 
         return losses
 
-    def simple_test(self, img, img_meta, proposals=None, rescale=False):
+    #def simple_test(self, img, img_meta, proposals=None, rescale=False):
+    def simple_test(self, img, img_metas, proposals=None, rescale=False):
         """Test without augmentation."""
         assert self.with_bbox, "Bbox head must be implemented."
 
         x = self.extract_feat(img)
 
         proposal_list = self.simple_test_rpn(
-            x, img_meta, self.test_cfg.rpn) if proposals is None else proposals
+            x, img_metas, self.test_cfg.rpn) if proposals is None else proposals
+            #x, img_meta, self.test_cfg.rpn) if proposals is None else proposals
 
         det_bboxes, det_labels = self.simple_test_bboxes(
-            x, img_meta, proposal_list, self.test_cfg.rcnn, rescale=rescale)
+            x, img_metas, proposal_list, self.test_cfg.rcnn, rescale=rescale)
+            #x, img_meta, proposal_list, self.test_cfg.rcnn, rescale=rescale)
         # import pdb
         # pdb.set_trace()
         bbox_results = dbbox2result(det_bboxes, det_labels,
@@ -217,7 +223,8 @@ class TwoStageDetectorRbbox(BaseDetector, RPNTestMixin, BBoxTestMixin,
             return bbox_results
         else:
             segm_results = self.simple_test_mask(
-                x, img_meta, det_bboxes, det_labels, rescale=rescale)
+                x, img_metas, det_bboxes, det_labels, rescale=rescale)
+                #x, img_meta, det_bboxes, det_labels, rescale=rescale)
             return bbox_results, segm_results
 
     def aug_test(self, imgs, img_metas, rescale=False):

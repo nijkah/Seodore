@@ -329,8 +329,12 @@ def choose_best_Rroi_batch(Rroi):
             shape: (n, 5)
     :return: Rroi_new: Rroi with new representation
     """
-    x_ctr, y_ctr, w, h, angle = copy.deepcopy(Rroi[:, 0]), copy.deepcopy(Rroi[:, 1]), \
-                                copy.deepcopy(Rroi[:, 2]), copy.deepcopy(Rroi[:, 3]), copy.deepcopy(Rroi[:, 4])
+    #x_ctr, y_ctr, w, h, angle = copy.deepcopy(Rroi[:, 0]), copy.deepcopy(Rroi[:, 1]), \
+    #                            copy.deepcopy(Rroi[:, 2]), copy.deepcopy(Rroi[:, 3]), copy.deepcopy(Rroi[:, 4])
+    #w, h, angle = copy.deepcopy(Rroi[:, 2]), copy.deepcopy(Rroi[:, 3]), copy.deepcopy(Rroi[:, 4])
+    #indexes = w < h
+
+    w, h, angle = Rroi[:, 2].clone(), Rroi[:, 3].clone(), Rroi[:, 4].clone()
     indexes = w < h
 
     Rroi[indexes, 2] = h[indexes]
@@ -565,12 +569,15 @@ def mask2poly_single(binary_mask):
         # contour_lens = np.array(list(map(len, contours)))
         # max_id = contour_lens.argmax()
         # max_contour = contours[max_id]
+        if len(contours) == 0:
+            return [0, 0, 0, 0, 0, 0, 0, 0]
         max_contour = max(contours, key=len)
         rect = cv2.minAreaRect(max_contour)
         poly = cv2.boxPoints(rect)
         # poly = TuplePoly2Poly(poly)
-    except:
+    except Exception as e:
         import pdb
+        print(e)
         pdb.set_trace()
     return poly
 

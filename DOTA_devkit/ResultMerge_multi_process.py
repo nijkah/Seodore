@@ -171,8 +171,9 @@ def mergesingle(dstpath, nms, nms_thresh, fullname):
             splitname = subname.split('__')
             oriname = splitname[0]
             pattern1 = re.compile(r'__\d+___\d+')
-            #print('subname:', subname)
+            print('subname:', subname)
             x_y = re.findall(pattern1, subname)
+            print('x_y:', x_y)
             x_y_2 = re.findall(r'\d+', x_y[0])
             x, y = int(x_y_2[0]), int(x_y_2[1])
 

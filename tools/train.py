@@ -93,7 +93,7 @@ def main():
     model = build_detector(
         cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg)
 
-    train_dataset, dataset_dicts = get_dataset(cfg.data.train)
+    train_dataset = get_dataset(cfg.data.train)
 
     if cfg.checkpoint_config is not None:
         # save mmdet version, config file content and class names in
@@ -109,8 +109,7 @@ def main():
         train_dataset,
         cfg,
         distributed=distributed,
-        validate=args.validate,
-        dataset_dicts=dataset_dicts)
+        validate=args.validate)
 
 
 if __name__ == '__main__':

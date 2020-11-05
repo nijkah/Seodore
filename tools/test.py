@@ -15,6 +15,19 @@ from mmdet.datasets import build_dataloader, get_dataset
 from mmdet.models import build_detector
 import time
 
+def convert_output_to_csv(dataset, outputs, dstpath):
+    img_files = [i['file_name'] for i in dataset.img_infos]
+    with open(dstpath, 'w') as f:
+        f.write('file_name,class_id,confidence,point1_x,point1_y,point2_x,point2_y,point3_x,point3_y,point4_x,point4_y\n')
+        for img_file, all_infer in zip(img_files, outputs):
+            for cls_infer in all_infer:
+                for instance_infer in cls_infer:
+                    instance_infer = instance_infer.tolist()
+                    confidence = str(instance_infer[-1])
+                    points = list(map(str, instance_infer[:-1]))
+                    line = ','.join([img_file, confidence, *points]) + '\n'
+                    f.write(line)
+
 def get_time_str():
     return time.strftime('%Y%m%d_%H%M%S', time.localtime())
 
@@ -114,6 +127,7 @@ def parse_args():
     parser.add_argument('config', help='test config file path')
     parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument('--out', help='output result file')
+    parser.add_argument('--csv', action='store_true', help='write results as csv')
     parser.add_argument(
         '--eval',
         type=str,
@@ -185,6 +199,11 @@ def main():
         print('\nwriting results to {}'.format(args.out))
         mmcv.dump(outputs, args.out)
         eval_types = args.eval
+        if args.csv:
+            csv_path = (args.out).replace('.pkl', '.csv')
+            print('\nwriting results as csv to {}'.format(csv_path))
+            convert_output_to_csv(dataset, outputs, csv_path)
+
         if eval_types:
             print('Starting evaluate {}'.format(' and '.join(eval_types)))
             if eval_types == ['proposal_fast']:

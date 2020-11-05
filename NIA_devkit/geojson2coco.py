@@ -2,13 +2,17 @@ import os
 import json
 from typing import List
 import math
+from glob import glob
 
+from tqdm import tqdm
 import cv2
 import numpy as np
 from PIL import Image
 
-roksi_15classes = ['소형 선박', '대형 선박', '민간 항공기', '군용 항공기', '소형 승용차', '버스', '트럭', '기차', '크레인', '다리', '정유탱크',
+NIA_CLASSES = ['배경', '소형 선박', '대형 선박', '민간 항공기', '군용 항공기', '소형 승용차', '버스', '트럭', '기차', '크레인', '다리', '정유탱크',
                '댐', '운동경기장', '헬리패드', '원형 교차로']
+CLASS_NAMES_EN = ('background', 'small ship', 'large ship', 'civilian aircraft', 'military aircraft', 'small car', 'bus', 'truck', 'train',
+        'crane', 'bridge', 'oil tank', 'dam', 'athletic field', 'helipad', 'roundabout')
 
 
 def convert_xywha_to_8coords(xywha, is_clockwise=False):
@@ -48,86 +52,85 @@ def convert_8coords_to_4coords(coords):
     return [xmin, ymin, w, h]
 
 
-def convert_labels_to_objects(coords, class_ids, classes, class_names, image_ids, difficult=0, is_clockwise=False):
+def convert_labels_to_objects(coords, class_ids, class_names, image_ids, difficult=0, is_clockwise=False):
     objs = list()
     inst_count = 1
 
-    for xywha, cls_id, cls_name, img_id in zip(coords, class_ids, classes, image_ids):
-        x, y, w, h, a = xywha
-        polygons = convert_xywha_to_8coords(xywha)
+    for polygons, cls_id, cls_name, img_id in tqdm(zip(coords, class_ids, class_names, image_ids), desc="converting labels to objects"):
+        xmin, ymin, w, h = convert_8coords_to_4coords(polygons)
         single_obj = {}
         single_obj['difficult'] = difficult
         single_obj['area'] = w*h
-        if cls_name in class_names:
-            single_obj['category_id'] = class_names.index(cls_name) + 1
+        if cls_name in CLASS_NAMES_EN:
+            single_obj['category_id'] = CLASS_NAMES_EN.index(cls_name)
         else:
             continue
         single_obj['segmentation'] = [[int(p) for p in polygons]]
         single_obj['iscrowd'] = 0
-        single_obj['bbox'] = convert_8coords_to_4coords(polygons)
+        single_obj['bbox'] = (xmin, ymin, w, h)
         single_obj['image_id'] = img_id
         single_obj['id'] = inst_count
         inst_count += 1
         objs.append(single_obj)
+
+    print('objects', len(objs))
     return objs
 
 
-def load_geojson(filename):
+def load_geojsons(filepath):
     """ Gets label data from a geojson label file
 
     :param (str) filename: file path to a geojson label file
     :return: (numpy.ndarray, numpy.ndarray ,numpy.ndarray) coords, chips, and classes corresponding to
             the coordinates, image names, and class codes for each ground truth.
     """
+    jsons = glob(os.path.join(filepath, '*.json'))
+    features = []
+    for json_path in tqdm(jsons, desc='loading geojson files'):
+        with open(json_path) as f:
+            data_dict = json.load(f)
+        features += data_dict['features']
 
-    with open(filename) as f:
-        data = json.load(f)
-
-    # obj_coords = np.zeros((len(data['features']), 5))
-    # image_ids = np.zeros((len(data['features'])), dtype='object')
-    # class_indices = np.zeros((len(data['features'])), dtype=int)
-    # class_names = np.zeros((len(data['features'])), dtype='object')
     obj_coords = list()
     image_ids = list()
     class_indices = list()
     class_names = list()
 
-    for idx in range(len(data['features'])):
-        properties = data['features'][idx]['properties']
-        #image_ids.append(properties['image_id'])
-        image_ids.append(properties['image_id'].replace('PS4', 'PS3')[:-4]+'.png')
+    for feature in tqdm(features, desc='extracting features'):
+        properties = feature['properties']
+        image_ids.append(properties['image_id'])
         obj_coords.append([float(num) for num in properties['object_imcoords'].split(",")])
         class_indices.append(properties['type_id'])
         class_names.append(properties['type_name'])
-        # image_ids[idx] = properties['image_id']
-        # obj_coords[idx] = np.array([float(num) for num in properties['object_imcoords'].split(",")])
-        # class_indices[idx] = properties['type_id']
-        # class_names[idx] = properties['type_name']
 
     return image_ids, obj_coords, class_indices, class_names
 
 
-def geojson2coco(imageroot: str, geojsonpath: str, destfile, class_names: List, difficult='0'):
+def geojson2coco(imageroot: str, geojsonpath: str, destfile, difficult='-1'):
     # set difficult to filter '2', '1', or do not filter, set '-1'
 
     data_dict = {}
     data_dict['images'] = []
     data_dict['categories'] = []
     data_dict['annotations'] = []
-    for idex, name in enumerate(class_names):
+    for idex, name in enumerate(CLASS_NAMES_EN[1:]):
         single_cat = {'id': idex + 1, 'name': name, 'supercategory': name}
         data_dict['categories'].append(single_cat)
 
     inst_count = 1
     image_id = 1
     with open(destfile, 'w') as f_out:
-        img_files, obj_coords, cls_ids, classes = load_geojson(geojsonpath)
-        img_id_map= {img_file:i+1 for i, img_file in enumerate(list(set(img_files)))}
-        image_ids = [img_id_map[img_file] for img_file in img_files]
-        objs = convert_labels_to_objects(obj_coords, cls_ids, classes, class_names, image_ids, difficult=difficult, is_clockwise=False)
-        data_dict['annotations'].extend(objs)
+        if os.path.exists(geojsonpath):
+            img_files, obj_coords, cls_ids, class_names = load_geojsons(geojsonpath)
+            img_id_map= {img_file:i+1 for i, img_file in enumerate(list(set(img_files)))}
+            image_ids = [img_id_map[img_file] for img_file in img_files]
+            objs = convert_labels_to_objects(obj_coords, cls_ids, class_names, image_ids, difficult=difficult, is_clockwise=False)
+            data_dict['annotations'].extend(objs)
+        else:
+            img_files = [i for i in os.listdir(imageroot) if 'png' in i]
+            img_id_map= {img_file:i+1 for i, img_file in enumerate(list(set(img_files)))}
 
-        for imgfile in img_id_map:
+        for imgfile in tqdm(img_id_map, desc='saving img info'):
             imagepath = os.path.join(imageroot, imgfile)
             img_id = img_id_map[imgfile]
             img = cv2.imread(imagepath)
@@ -144,11 +147,11 @@ def geojson2coco(imageroot: str, geojsonpath: str, destfile, class_names: List, 
 
 if __name__ == '__main__':
 
-    geojson2coco(imageroot=r'/mnt/workspace/hakjinlee/datasets/NIA20A/object/train/images',
-                 geojsonpath=r'/mnt/workspace/hakjinlee/datasets/NIA20A/object/train/train.geojson',
-                 destfile=r'/mnt/workspace/hakjinlee/datasets/NIA20A/object/train/traincoco.json',
-                 class_names=roksi_15classes)
-    geojson2coco(imageroot=r'/mnt/workspace/hakjinlee/datasets/NIA20A/object/val/images',
-                 geojsonpath=r'/mnt/workspace/hakjinlee/datasets/NIA20A/object/val/val.geojson',
-                 destfile=r'/mnt/workspace/hakjinlee/datasets/NIA20A/object/val/valcoco.json',
-                 class_names=roksi_15classes)
+    rootfolder = '/mnt/workspace/hakjinlee/datasets/NIA20A/'
+
+    geojson2coco(imageroot=os.path.join(rootfolder, 'train/images'),
+                 geojsonpath=os.path.join(rootfolder, 'train/json'),
+                 destfile=os.path.join(rootfolder, 'train/coco.json'))
+    geojson2coco(imageroot=os.path.join(rootfolder, 'test/images'),
+                 geojsonpath=os.path.join(rootfolder, 'test/json'),
+                 destfile=os.path.join(rootfolder, 'test/coco.json'))

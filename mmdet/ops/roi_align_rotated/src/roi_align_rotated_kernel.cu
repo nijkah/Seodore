@@ -139,7 +139,7 @@ __global__ void ROIAlignRotatedForward(const int nthreads, const scalar_t *botto
     }
 }
 
-int ROIAlignRotatedForwardLaucher(const at::Tensor features, const at::Tensor rois,
+int ROIAlignRotatedForwardCUDAKernelLauncher(const at::Tensor features, const at::Tensor rois,
                                 const float spatial_scale, const int sample_num,
                                 const int channels, const int height,
                                 const int width, const int num_rois,
@@ -147,7 +147,7 @@ int ROIAlignRotatedForwardLaucher(const at::Tensor features, const at::Tensor ro
                                 at::Tensor output) {
     const int output_size = num_rois * pooled_height * pooled_width * channels;
     AT_DISPATCH_FLOATING_TYPES_AND_HALF(
-        features.type(), "ROIAlignRotatedLaucherForward", ([&] {
+        features.type(), "ROIAlignRotatedLauncherForward", ([&] {
             const scalar_t *bottom_data = features.data<scalar_t>();
             const scalar_t *rois_data = rois.data<scalar_t>();
             scalar_t *top_data = output.data<scalar_t>();
@@ -314,7 +314,7 @@ __global__ void ROIAlignBackward(
   }  // CUDA_1D_KERNEL_LOOP
 }  // RoIAlignBackward
 
-int ROIAlignRotatedBackwardLaucher(const at::Tensor top_grad, const at::Tensor rois,
+int ROIAlignRotatedBackwardCUDAKernelLauncher(const at::Tensor top_grad, const at::Tensor rois,
     const float spatial_scale, const int sample_num,
     const int channels, const int height,
     const int width, const int num_rois,
@@ -322,7 +322,7 @@ int ROIAlignRotatedBackwardLaucher(const at::Tensor top_grad, const at::Tensor r
     at::Tensor bottom_grad) {
         const int output_size = num_rois * pooled_height * pooled_width * channels;
         AT_DISPATCH_FLOATING_TYPES_AND_HALF(
-            top_grad.type(), "ROIAlignLaucherBackward", ([&] {
+            top_grad.type(), "ROIAlignLauncherBackward", ([&] {
               const scalar_t *top_diff = top_grad.data<scalar_t>();
               const scalar_t *rois_data = rois.data<scalar_t>();
               scalar_t *bottom_diff = bottom_grad.data<scalar_t>();

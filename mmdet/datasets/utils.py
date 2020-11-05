@@ -3,12 +3,12 @@ from collections import Sequence
 
 import mmcv
 from mmcv.runner import obj_from_dict
+from mmcv.utils import build_from_cfg
 import torch
 
 import matplotlib.pyplot as plt
 import numpy as np
-from .concat_dataset import ConcatDataset
-from .repeat_dataset import RepeatDataset
+from .dataset_wrappers import ConcatDataset, RepeatDataset, ClassBalancedDataset
 from .. import datasets
 
 
@@ -74,46 +74,74 @@ def show_ann(coco, img, ann_info):
     plt.show()
 
 
-def get_dataset(data_cfg):
-    if data_cfg['type'] == 'RepeatDataset':
-        return RepeatDataset(
-            get_dataset(data_cfg['dataset']), data_cfg['times'])
-
-    if isinstance(data_cfg['ann_file'], (list, tuple)):
-        ann_files = data_cfg['ann_file']
-        num_dset = len(ann_files)
+def get_dataset(cfg, default_args=None):
+    from .dataset_wrappers import (ConcatDataset, RepeatDataset,
+                                   ClassBalancedDataset)
+    if isinstance(cfg, (list, tuple)):
+        dataset = ConcatDataset([get_dataset(c, default_args) for c in cfg])
+    elif cfg['type'] == 'ConcatDataset':
+        dataset = ConcatDataset(
+            [get_dataset(c, default_args) for c in cfg['datasets']],
+            cfg.get('separate_eval', True))
+    elif cfg['type'] == 'RepeatDataset':
+        dataset = RepeatDataset(
+            get_dataset(cfg['dataset'], default_args), cfg['times'])
+    elif cfg['type'] == 'ClassBalancedDataset':
+        dataset = ClassBalancedDataset(
+            get_dataset(cfg['dataset'], default_args), cfg['oversample_thr'])
+    elif isinstance(cfg.get('ann_file'), (list, tuple)):
+        dataset = _concat_dataset(cfg, default_args)
     else:
-        ann_files = [data_cfg['ann_file']]
-        num_dset = 1
+        #dataset = build_from_cfg(cfg, DATASETS, default_args)
+        #dataset = build_from_cfg(cfg, datasets, default_args)
+        dataset = obj_from_dict(cfg, datasets)
 
-    if 'proposal_file' in data_cfg.keys():
-        if isinstance(data_cfg['proposal_file'], (list, tuple)):
-            proposal_files = data_cfg['proposal_file']
-        else:
-            proposal_files = [data_cfg['proposal_file']]
-    else:
-        proposal_files = [None] * num_dset
-    assert len(proposal_files) == num_dset
+    return dataset
 
-    if isinstance(data_cfg['img_prefix'], (list, tuple)):
-        img_prefixes = data_cfg['img_prefix']
-    else:
-        img_prefixes = [data_cfg['img_prefix']] * num_dset
-    assert len(img_prefixes) == num_dset
 
-    dsets = []
-    dataset_dicts = dict()
+# def get_dataset(data_cfg):
+#     if data_cfg['type'] == 'RepeatDataset':
+#         return RepeatDataset(
+#             get_dataset(data_cfg['dataset']), data_cfg['times'])
 
-    for i in range(num_dset):
-        data_info = copy.deepcopy(data_cfg)
-        data_info['ann_file'] = ann_files[i]
-        data_info['proposal_file'] = proposal_files[i]
-        data_info['img_prefix'] = img_prefixes[i]
-        dset = obj_from_dict(data_info, datasets)
-        dataset_dicts.update(dset.get_anns())
-        dsets.append(dset)
-    if len(dsets) > 1:
-        dset = ConcatDataset(dsets)
-    else:
-        dset = dsets[0]
-    return dset, dataset_dicts
+#     if isinstance(data_cfg['ann_file'], (list, tuple)):
+#         ann_files = data_cfg['ann_file']
+#         num_dset = len(ann_files)
+#     else:
+#         ann_files = [data_cfg['ann_file']]
+#         num_dset = 1
+
+#     if 'proposal_file' in data_cfg.keys():
+#         if isinstance(data_cfg['proposal_file'], (list, tuple)):
+#             proposal_files = data_cfg['proposal_file']
+#         else:
+#             proposal_files = [data_cfg['proposal_file']]
+#     else:
+#         proposal_files = [None] * num_dset
+#     assert len(proposal_files) == num_dset
+
+#     if isinstance(data_cfg['img_prefix'], (list, tuple)):
+#         img_prefixes = data_cfg['img_prefix']
+#     else:
+#         img_prefixes = [data_cfg['img_prefix']] * num_dset
+#     assert len(img_prefixes) == num_dset
+
+#     dsets = []
+
+#     for i in range(num_dset):
+#         data_info = copy.deepcopy(data_cfg)
+#         if data_cfg['type'] == 'ClassBalancedDataset':
+#             data_info = data_cfg['dataset']
+
+#         data_info['ann_file'] = ann_files[i]
+#         data_info['proposal_file'] = proposal_files[i]
+#         data_info['img_prefix'] = img_prefixes[i]
+#         dset = obj_from_dict(data_info, datasets)
+#         if data_cfg['type'] == 'ClassBalancedDataset':
+#             dset = ClassBalancedDataset(dset)
+#         dsets.append(dset)
+#     if len(dsets) > 1:
+#         dset = ConcatDataset(dsets)
+#     else:
+#         dset = dsets[0]
+#     return dset

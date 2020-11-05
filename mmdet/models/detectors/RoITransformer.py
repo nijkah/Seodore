@@ -267,7 +267,8 @@ class RoITransformer(BaseDetectorNew, RPNTestMixin):
         rrois = self.bbox_head.regress_by_class_rbbox(roi2droi(rois), bbox_label, bbox_pred,
                                                       img_meta[0])
 
-        rrois_enlarge = copy.deepcopy(rrois)
+        #rrois_enlarge = copy.deepcopy(rrois)
+        rrois_enlarge = rrois.clone()
         rrois_enlarge[:, 3] = rrois_enlarge[:, 3] * self.rbbox_roi_extractor.w_enlarge
         rrois_enlarge[:, 4] = rrois_enlarge[:, 4] * self.rbbox_roi_extractor.h_enlarge
         rbbox_feats = self.rbbox_roi_extractor(
@@ -367,12 +368,3 @@ class RoITransformer(BaseDetectorNew, RPNTestMixin):
         rbbox_results = dbbox2result(_det_rbboxes, det_rlabels,
                                      self.rbbox_head.num_classes)
         return rbbox_results
-
-
-
-
-
-
-
-
-

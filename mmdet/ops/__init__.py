@@ -4,7 +4,8 @@ from .dcn import (DeformConv, DeformConvPack, ModulatedDeformConv,
                   deform_conv, modulated_deform_conv, deform_roi_pooling)
 from .gcb import ContextBlock
 from .nms import nms, soft_nms
-from .roi_align import RoIAlign, roi_align
+#from .roi_align import RoIAlign, roi_align
+from mmcv.ops import RoIAlign, roi_align
 from .roi_pool import RoIPool, roi_pool
 from .roi_align_rotated import RoIAlignRotated, roi_align_rotated
 from .psroi_align_rotated import PSRoIAlignRotated, psroi_align_rotated

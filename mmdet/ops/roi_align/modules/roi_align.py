@@ -1,5 +1,8 @@
 from torch.nn.modules.module import Module
-from ..functions.roi_align import RoIAlignFunction
+from mmcv.ops import roi_align
+
+RoIAlign = roi_align
+#from ..functions.roi_align import RoIAlignFunction
 
 
 class RoIAlign(Module):
