@@ -1,12 +1,12 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from mmcv.cnn import kaiming_init
+from mmcv.cnn import ConvModule
 
-from ..registry import HEADS
-from ..utils import ConvModule
+from ..builder import HEADS
 
 
-@HEADS.register_module
+@HEADS.register_module()
 class FusedSemanticHead(nn.Module):
     """Multi-level fused semantic segmentation head.
 

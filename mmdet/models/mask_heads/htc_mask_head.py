@@ -1,9 +1,9 @@
 from .fcn_mask_head import FCNMaskHead
-from ..registry import HEADS
-from ..utils import ConvModule
+from ..builder import HEADS
+from mmcv.cnn import ConvModule
 
 
-@HEADS.register_module
+@HEADS.register_module()
 class HTCMaskHead(FCNMaskHead):
 
     def __init__(self, *args, **kwargs):

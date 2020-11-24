@@ -1,11 +1,12 @@
 import torch.nn as nn
+from mmcv.cnn import ConvModule
 
 from .rbbox_head import BBoxHeadRbbox
-from ..registry import HEADS
-from ..utils import ConvModule
+from ..builder import HEADS
 
 
-@HEADS.register_module
+
+@HEADS.register_module()
 class ConvFCBBoxHeadRbbox(BBoxHeadRbbox):
     """More general bbox head, with shared conv and fc layers and two optional
     separated branches.
@@ -175,7 +176,7 @@ class ConvFCBBoxHeadRbbox(BBoxHeadRbbox):
         return cls_score, bbox_pred
 
 
-@HEADS.register_module
+@HEADS.register_module()
 class SharedFCBBoxHeadRbbox(ConvFCBBoxHeadRbbox):
 
     def __init__(self, num_fcs=2, fc_out_channels=1024, *args, **kwargs):

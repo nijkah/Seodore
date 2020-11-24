@@ -3,14 +3,14 @@ import numpy as np
 import pycocotools.mask as mask_util
 import torch
 import torch.nn as nn
+from mmcv.cnn import ConvModule
 
 from ..builder import build_loss
-from ..registry import HEADS
-from ..utils import ConvModule
+from ..builder import HEADS
 from mmdet.core import mask_target
 
 
-@HEADS.register_module
+@HEADS.register_module()
 class FCNMaskHead(nn.Module):
 
     def __init__(self,

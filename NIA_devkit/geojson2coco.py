@@ -147,11 +147,16 @@ def geojson2coco(imageroot: str, geojsonpath: str, destfile, difficult='-1'):
 
 if __name__ == '__main__':
 
-    rootfolder = '/mnt/workspace/hakjinlee/datasets/NIA20A/'
+    #rootfolder = '/mnt/workspace/hakjinlee/datasets/NIA20A/'
+    rootfolder = '/mnt/datasets/RSI_OP_NIA_PUB3/object/'
+    geojson2coco(imageroot=os.path.join(rootfolder, 'asset'),
+                 geojsonpath=os.path.join(rootfolder, 'label'),
+                 destfile=os.path.join(rootfolder, 'coco.json'))
 
-    geojson2coco(imageroot=os.path.join(rootfolder, 'train/images'),
-                 geojsonpath=os.path.join(rootfolder, 'train/json'),
-                 destfile=os.path.join(rootfolder, 'train/coco.json'))
-    geojson2coco(imageroot=os.path.join(rootfolder, 'test/images'),
-                 geojsonpath=os.path.join(rootfolder, 'test/json'),
-                 destfile=os.path.join(rootfolder, 'test/coco.json'))
+
+    #geojson2coco(imageroot=os.path.join(rootfolder, 'train/images'),
+    #             geojsonpath=os.path.join(rootfolder, 'train/json'),
+    #             destfile=os.path.join(rootfolder, 'train/coco.json'))
+    #geojson2coco(imageroot=os.path.join(rootfolder, 'test/images'),
+    #             geojsonpath=os.path.join(rootfolder, 'test/json'),
+    #             destfile=os.path.join(rootfolder, 'test/coco.json'))

@@ -1,10 +1,10 @@
 import torch.nn as nn
 from mmdet.core import weighted_iou_loss
 
-from ..registry import LOSSES
+from ..builder import LOSSES
 
 
-@LOSSES.register_module
+@LOSSES.register_module()
 class IoULoss(nn.Module):
 
     def __init__(self, style='naive', beta=0.2, eps=1e-3, loss_weight=1.0):

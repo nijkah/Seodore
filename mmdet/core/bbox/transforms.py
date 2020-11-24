@@ -53,8 +53,10 @@ def delta2bbox(rois,
     ph = (rois[:, 3] - rois[:, 1] + 1.0).unsqueeze(1).expand_as(dh)
     gw = pw * dw.exp()
     gh = ph * dh.exp()
-    gx = torch.addcmul(px, 1, pw, dx)  # gx = px + pw * dx
-    gy = torch.addcmul(py, 1, ph, dy)  # gy = py + ph * dy
+    #  addcmul(Tensor input, Number value, Tensor tensor1, Tensor tensor2, *, Tensor out)
+    #  addcmul(Tensor input, Tensor tensor1, Tensor tensor2, *, Number value, Tensor out)
+    gx = torch.addcmul(px, pw, dx, value=1)  # gx = px + pw * dx
+    gy = torch.addcmul(py, ph, dy, value=1)  # gy = py + ph * dy
     x1 = gx - gw * 0.5 + 0.5
     y1 = gy - gh * 0.5 + 0.5
     x2 = gx + gw * 0.5 - 0.5

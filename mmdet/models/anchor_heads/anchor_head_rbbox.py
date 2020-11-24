@@ -10,10 +10,10 @@ from mmdet.core import (AnchorGenerator, anchor_target_rbbox, delta2bbox,
                         multiclass_nms_rbbox)
 from mmdet.core.bbox.transforms_rbbox import hbb2obb_v2
 from ..builder import build_loss
-from ..registry import HEADS
+from ..builder import HEADS
 
 
-@HEADS.register_module
+@HEADS.register_module()
 class AnchorHeadRbbox(nn.Module):
     """Anchor-based head (RPN, RetinaNet, SSD, etc.).
 

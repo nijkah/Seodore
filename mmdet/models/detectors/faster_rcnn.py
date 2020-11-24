@@ -1,8 +1,8 @@
 from .two_stage import TwoStageDetector
-from ..registry import DETECTORS
+from ..builder import DETECTORS
 
 
-@DETECTORS.register_module
+@DETECTORS.register_module()
 class FasterRCNN(TwoStageDetector):
 
     def __init__(self,

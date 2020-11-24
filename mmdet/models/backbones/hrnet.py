@@ -1,12 +1,11 @@
 import logging
 
 import torch.nn as nn
-from mmcv.cnn import constant_init, kaiming_init
+from mmcv.cnn import constant_init, kaiming_init, build_norm_layer, build_conv_layer
 from mmcv.runner import load_checkpoint
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from ..registry import BACKBONES
-from ..utils import build_norm_layer, build_conv_layer
+from ..builder import BACKBONES
 from .resnet import BasicBlock, Bottleneck
 
 
@@ -192,7 +191,7 @@ class HRModule(nn.Module):
         return x_fuse
 
 
-@BACKBONES.register_module
+@BACKBONES.register_module()
 class HRNet(nn.Module):
     """HRNet backbone.
 

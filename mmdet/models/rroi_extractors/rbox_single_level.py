@@ -4,9 +4,9 @@ import torch
 import torch.nn as nn
 
 from mmdet import ops
-from ..registry import ROI_EXTRACTORS
+from ..builder import ROI_EXTRACTORS
 
-@ROI_EXTRACTORS.register_module
+@ROI_EXTRACTORS.register_module()
 class RboxSingleRoIExtractor(nn.Module):
     """Extract RRoI features from a single level feature map.
 

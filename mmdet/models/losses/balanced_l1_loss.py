@@ -1,10 +1,10 @@
 import torch.nn as nn
 from mmdet.core import weighted_balanced_l1_loss
 
-from ..registry import LOSSES
+from ..builder import LOSSES
 
 
-@LOSSES.register_module
+@LOSSES.register_module()
 class BalancedL1Loss(nn.Module):
     """Balanced L1 Loss
 

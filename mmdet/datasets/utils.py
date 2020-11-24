@@ -1,147 +1,62 @@
 import copy
-from collections import Sequence
-
-import mmcv
-from mmcv.runner import obj_from_dict
-from mmcv.utils import build_from_cfg
-import torch
-
-import matplotlib.pyplot as plt
-import numpy as np
-from .dataset_wrappers import ConcatDataset, RepeatDataset, ClassBalancedDataset
-from .. import datasets
+import warnings
 
 
-def to_tensor(data):
-    """Convert objects of various python types to :obj:`torch.Tensor`.
-
-    Supported types are: :class:`numpy.ndarray`, :class:`torch.Tensor`,
-    :class:`Sequence`, :class:`int` and :class:`float`.
-    """
-    if isinstance(data, torch.Tensor):
-        return data
-    elif isinstance(data, np.ndarray):
-        return torch.from_numpy(data)
-    elif isinstance(data, Sequence) and not mmcv.is_str(data):
-        return torch.tensor(data)
-    elif isinstance(data, int):
-        return torch.LongTensor([data])
-    elif isinstance(data, float):
-        return torch.FloatTensor([data])
-    else:
-        raise TypeError('type {} cannot be converted to tensor.'.format(
-            type(data)))
-
-
-def random_scale(img_scales, mode='range'):
-    """Randomly select a scale from a list of scales or scale ranges.
+def replace_ImageToTensor(pipelines):
+    """Replace the ImageToTensor transform in a data pipeline to
+    DefaultFormatBundle, which is normally useful in batch inference.
 
     Args:
-        img_scales (list[tuple]): Image scale or scale range.
-        mode (str): "range" or "value".
+        pipelines (list[dict]): Data pipeline configs.
 
     Returns:
-        tuple: Sampled image scale.
+        list: The new pipeline list with all ImageToTensor replaced by
+            DefaultFormatBundle.
+
+    Examples:
+        >>> pipelines = [
+        ...    dict(type='LoadImageFromFile'),
+        ...    dict(
+        ...        type='MultiScaleFlipAug',
+        ...        img_scale=(1333, 800),
+        ...        flip=False,
+        ...        transforms=[
+        ...            dict(type='Resize', keep_ratio=True),
+        ...            dict(type='RandomFlip'),
+        ...            dict(type='Normalize', mean=[0, 0, 0], std=[1, 1, 1]),
+        ...            dict(type='Pad', size_divisor=32),
+        ...            dict(type='ImageToTensor', keys=['img']),
+        ...            dict(type='Collect', keys=['img']),
+        ...        ])
+        ...    ]
+        >>> expected_pipelines = [
+        ...    dict(type='LoadImageFromFile'),
+        ...    dict(
+        ...        type='MultiScaleFlipAug',
+        ...        img_scale=(1333, 800),
+        ...        flip=False,
+        ...        transforms=[
+        ...            dict(type='Resize', keep_ratio=True),
+        ...            dict(type='RandomFlip'),
+        ...            dict(type='Normalize', mean=[0, 0, 0], std=[1, 1, 1]),
+        ...            dict(type='Pad', size_divisor=32),
+        ...            dict(type='DefaultFormatBundle'),
+        ...            dict(type='Collect', keys=['img']),
+        ...        ])
+        ...    ]
+        >>> assert expected_pipelines == replace_ImageToTensor(pipelines)
     """
-    num_scales = len(img_scales)
-    if num_scales == 1:  # fixed scale is specified
-        img_scale = img_scales[0]
-    elif num_scales == 2:  # randomly sample a scale
-        if mode == 'range':
-            img_scale_long = [max(s) for s in img_scales]
-            img_scale_short = [min(s) for s in img_scales]
-            long_edge = np.random.randint(
-                min(img_scale_long),
-                max(img_scale_long) + 1)
-            short_edge = np.random.randint(
-                min(img_scale_short),
-                max(img_scale_short) + 1)
-            img_scale = (long_edge, short_edge)
-        elif mode == 'value':
-            img_scale = img_scales[np.random.randint(num_scales)]
-    else:
-        if mode != 'value':
-            raise ValueError(
-                'Only "value" mode supports more than 2 image scales')
-        img_scale = img_scales[np.random.randint(num_scales)]
-    return img_scale
-
-
-def show_ann(coco, img, ann_info):
-    plt.imshow(mmcv.bgr2rgb(img))
-    plt.axis('off')
-    coco.showAnns(ann_info)
-    plt.show()
-
-
-def get_dataset(cfg, default_args=None):
-    from .dataset_wrappers import (ConcatDataset, RepeatDataset,
-                                   ClassBalancedDataset)
-    if isinstance(cfg, (list, tuple)):
-        dataset = ConcatDataset([get_dataset(c, default_args) for c in cfg])
-    elif cfg['type'] == 'ConcatDataset':
-        dataset = ConcatDataset(
-            [get_dataset(c, default_args) for c in cfg['datasets']],
-            cfg.get('separate_eval', True))
-    elif cfg['type'] == 'RepeatDataset':
-        dataset = RepeatDataset(
-            get_dataset(cfg['dataset'], default_args), cfg['times'])
-    elif cfg['type'] == 'ClassBalancedDataset':
-        dataset = ClassBalancedDataset(
-            get_dataset(cfg['dataset'], default_args), cfg['oversample_thr'])
-    elif isinstance(cfg.get('ann_file'), (list, tuple)):
-        dataset = _concat_dataset(cfg, default_args)
-    else:
-        #dataset = build_from_cfg(cfg, DATASETS, default_args)
-        #dataset = build_from_cfg(cfg, datasets, default_args)
-        dataset = obj_from_dict(cfg, datasets)
-
-    return dataset
-
-
-# def get_dataset(data_cfg):
-#     if data_cfg['type'] == 'RepeatDataset':
-#         return RepeatDataset(
-#             get_dataset(data_cfg['dataset']), data_cfg['times'])
-
-#     if isinstance(data_cfg['ann_file'], (list, tuple)):
-#         ann_files = data_cfg['ann_file']
-#         num_dset = len(ann_files)
-#     else:
-#         ann_files = [data_cfg['ann_file']]
-#         num_dset = 1
-
-#     if 'proposal_file' in data_cfg.keys():
-#         if isinstance(data_cfg['proposal_file'], (list, tuple)):
-#             proposal_files = data_cfg['proposal_file']
-#         else:
-#             proposal_files = [data_cfg['proposal_file']]
-#     else:
-#         proposal_files = [None] * num_dset
-#     assert len(proposal_files) == num_dset
-
-#     if isinstance(data_cfg['img_prefix'], (list, tuple)):
-#         img_prefixes = data_cfg['img_prefix']
-#     else:
-#         img_prefixes = [data_cfg['img_prefix']] * num_dset
-#     assert len(img_prefixes) == num_dset
-
-#     dsets = []
-
-#     for i in range(num_dset):
-#         data_info = copy.deepcopy(data_cfg)
-#         if data_cfg['type'] == 'ClassBalancedDataset':
-#             data_info = data_cfg['dataset']
-
-#         data_info['ann_file'] = ann_files[i]
-#         data_info['proposal_file'] = proposal_files[i]
-#         data_info['img_prefix'] = img_prefixes[i]
-#         dset = obj_from_dict(data_info, datasets)
-#         if data_cfg['type'] == 'ClassBalancedDataset':
-#             dset = ClassBalancedDataset(dset)
-#         dsets.append(dset)
-#     if len(dsets) > 1:
-#         dset = ConcatDataset(dsets)
-#     else:
-#         dset = dsets[0]
-#     return dset
+    pipelines = copy.deepcopy(pipelines)
+    for i, pipeline in enumerate(pipelines):
+        if pipeline['type'] == 'MultiScaleFlipAug':
+            assert 'transforms' in pipeline
+            pipeline['transforms'] = replace_ImageToTensor(
+                pipeline['transforms'])
+        elif pipeline['type'] == 'ImageToTensor':
+            warnings.warn(
+                '"ImageToTensor" pipeline is replaced by '
+                '"DefaultFormatBundle" for batch inference. It is '
+                'recommended to manually replace it in the test '
+                'data pipeline in your config file.', UserWarning)
+            pipelines[i] = {'type': 'DefaultFormatBundle'}
+    return pipelines

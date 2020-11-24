@@ -6,12 +6,11 @@ import tempfile
 import mmcv
 import torch
 import torch.distributed as dist
-from mmcv.runner import load_checkpoint, get_dist_info
+from mmcv.runner import load_checkpoint, get_dist_info, init_dist
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 
-from mmdet.apis import init_dist
 from mmdet.core import results2json, coco_eval
-from mmdet.datasets import build_dataloader, get_dataset
+from mmdet.datasets import build_dataloader, build_dataset
 from mmdet.models import build_detector
 import time
 
@@ -167,12 +166,14 @@ def main():
         distributed = True
         init_dist(args.launcher, **cfg.dist_params)
 
+    samples_per_gpu = cfg.data.test.pop('samples_per_gpu', 1)
+
     # build the dataloader
     # TODO: support multiple images per gpu (only minor changes are needed)
-    dataset = get_dataset(cfg.data.test)
+    dataset = build_dataset(cfg.data.test)
     data_loader = build_dataloader(
         dataset,
-        imgs_per_gpu=1,
+        samples_per_gpu=samples_per_gpu,
         workers_per_gpu=cfg.data.workers_per_gpu,
         dist=distributed,
         shuffle=False)

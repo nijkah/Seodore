@@ -3,12 +3,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.checkpoint import checkpoint
 from mmcv.cnn import caffe2_xavier_init
+from mmcv.cnn import ConvModule
 
-from ..utils import ConvModule
-from ..registry import NECKS
+from ..builder import NECKS
 
 
-@NECKS.register_module
+@NECKS.register_module()
 class HRFPN(nn.Module):
     """HRFPN (High Resolution Feature Pyrmamids)
 

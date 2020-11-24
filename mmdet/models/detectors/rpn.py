@@ -4,10 +4,10 @@ from mmdet.core import tensor2imgs, bbox_mapping
 from .base import BaseDetector
 from .test_mixins import RPNTestMixin
 from .. import builder
-from ..registry import DETECTORS
+from ..builder import DETECTORS
 
 
-@DETECTORS.register_module
+@DETECTORS.register_module()
 class RPN(BaseDetector, RPNTestMixin):
 
     def __init__(self,

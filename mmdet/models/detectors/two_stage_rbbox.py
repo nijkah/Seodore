@@ -5,11 +5,11 @@ from .base import BaseDetector
 from .test_mixins import RPNTestMixin, BBoxTestMixin, MaskTestMixin
 
 from .. import builder
-from ..registry import DETECTORS
+from ..builder import DETECTORS
 from mmdet.core import bbox2roi, bbox2result, build_assigner, build_sampler, dbbox2result
 
 
-@DETECTORS.register_module
+@DETECTORS.register_module()
 class TwoStageDetectorRbbox(BaseDetector, RPNTestMixin, BBoxTestMixin,
                        MaskTestMixin):
 

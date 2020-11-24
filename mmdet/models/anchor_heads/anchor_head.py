@@ -8,10 +8,10 @@ from mmcv.cnn import normal_init
 from mmdet.core import (AnchorGenerator, anchor_target, delta2bbox,
                         multi_apply, multiclass_nms)
 from ..builder import build_loss
-from ..registry import HEADS
+from ..builder import HEADS
 
 
-@HEADS.register_module
+@HEADS.register_module()
 class AnchorHead(nn.Module):
     """Anchor-based head (RPN, RetinaNet, SSD, etc.).
 

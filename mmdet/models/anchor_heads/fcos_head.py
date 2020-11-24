@@ -1,17 +1,16 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from mmcv.cnn import normal_init
+from mmcv.cnn import bias_init_with_prob, normal_init, ConvModule, Scale
 
 from mmdet.core import (sigmoid_focal_loss, iou_loss, multi_apply,
                         multiclass_nms, distance2bbox)
-from ..registry import HEADS
-from ..utils import bias_init_with_prob, Scale, ConvModule
+from ..builder import HEADS
 
 INF = 1e8
 
 
-@HEADS.register_module
+@HEADS.register_module()
 class FCOSHead(nn.Module):
 
     def __init__(self,

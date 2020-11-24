@@ -2,10 +2,10 @@ import torch.nn as nn
 from mmdet.core import (weighted_cross_entropy, weighted_binary_cross_entropy,
                         mask_cross_entropy)
 
-from ..registry import LOSSES
+from ..builder import LOSSES
 
 
-@LOSSES.register_module
+@LOSSES.register_module()
 class CrossEntropyLoss(nn.Module):
 
     def __init__(self, use_sigmoid=False, use_mask=False, loss_weight=1.0):

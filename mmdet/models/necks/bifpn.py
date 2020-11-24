@@ -10,7 +10,7 @@ from mmcv.runner import auto_fp16
 
 from torch.nn.modules.batchnorm import _BatchNorm
 import functools
-from ..registry import NECKS
+from ..builder import NECKS
 
 class Swish(nn.Module):
     def forward(self, x):
@@ -298,7 +298,7 @@ class bifpn(nn.Module):
         return outputs
 
 
-@NECKS.register_module
+@NECKS.register_module()
 class BiFPN(nn.Module):
 
     def __init__(self,

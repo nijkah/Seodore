@@ -1,13 +1,12 @@
 import numpy as np
 import torch.nn as nn
-from mmcv.cnn import normal_init
+from mmcv.cnn import bias_init_with_prob, normal_init, ConvModule
 
 from .anchor_head import AnchorHead
-from ..registry import HEADS
-from ..utils import bias_init_with_prob, ConvModule
+from ..builder import HEADS
 
 
-@HEADS.register_module
+@HEADS.register_module()
 class RetinaHead(AnchorHead):
 
     def __init__(self,

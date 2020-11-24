@@ -2,11 +2,11 @@ import torch.nn as nn
 
 from .base_new import BaseDetectorNew
 from .. import builder
-from ..registry import DETECTORS
+from ..builder import DETECTORS
 from mmdet.core import bbox2result, dbbox2result
 
 # TODO: make it more flexible to add hbb
-@DETECTORS.register_module
+@DETECTORS.register_module()
 class SingleStageDetectorRbbox(BaseDetectorNew):
 
     def __init__(self,

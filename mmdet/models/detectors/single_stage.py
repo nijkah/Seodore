@@ -2,11 +2,11 @@ import torch.nn as nn
 
 from .base import BaseDetector
 from .. import builder
-from ..registry import DETECTORS
+from ..builder import DETECTORS
 from mmdet.core import bbox2result
 
 
-@DETECTORS.register_module
+@DETECTORS.register_module()
 class SingleStageDetector(BaseDetector):
 
     def __init__(self,

@@ -11,7 +11,7 @@ from ..builder import build_loss
 from ..registry import HEADS
 
 
-@HEADS.register_module
+@HEADS.register_module()
 class GSBBoxHeadWith0(SharedFCBBoxHead):
 
     def __init__(self,

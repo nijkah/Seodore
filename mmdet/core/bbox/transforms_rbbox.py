@@ -331,10 +331,10 @@ def choose_best_Rroi_batch(Rroi):
     """
     #x_ctr, y_ctr, w, h, angle = copy.deepcopy(Rroi[:, 0]), copy.deepcopy(Rroi[:, 1]), \
     #                            copy.deepcopy(Rroi[:, 2]), copy.deepcopy(Rroi[:, 3]), copy.deepcopy(Rroi[:, 4])
-    #w, h, angle = copy.deepcopy(Rroi[:, 2]), copy.deepcopy(Rroi[:, 3]), copy.deepcopy(Rroi[:, 4])
+    w, h, angle = copy.deepcopy(Rroi[:, 2]), copy.deepcopy(Rroi[:, 3]), copy.deepcopy(Rroi[:, 4])
     #indexes = w < h
 
-    w, h, angle = Rroi[:, 2].clone(), Rroi[:, 3].clone(), Rroi[:, 4].clone()
+    #w, h, angle = Rroi[:, 2].clone(), Rroi[:, 3].clone(), Rroi[:, 4].clone()
     indexes = w < h
 
     Rroi[indexes, 2] = h[indexes]
@@ -565,12 +565,20 @@ def mask2poly_single(binary_mask):
     :return:
     """
     try:
-        image, contours, hierarchy = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        # To support OpenCV 3 and 4
+        contours_returns  = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        contours = contours_returns[-2]
+        hierarchy = contours_returns[-1]
+        #if int(cv2.__version__[0]) == 4:
+        #    contours, hierarchy = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        #else:
+        #    image, contours, hierarchy = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         # contour_lens = np.array(list(map(len, contours)))
         # max_id = contour_lens.argmax()
         # max_contour = contours[max_id]
         if len(contours) == 0:
-            return [0, 0, 0, 0, 0, 0, 0, 0]
+            #return [0, 0, 0, 0, 0, 0, 0, 0]
+            return np.array([0, 0, 0, 0, 0, 0, 0, 0]).reshape(4, 2)
         max_contour = max(contours, key=len)
         rect = cv2.minAreaRect(max_contour)
         poly = cv2.boxPoints(rect)

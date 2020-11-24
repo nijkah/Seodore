@@ -1,8 +1,8 @@
 from .single_stage_rbbox import SingleStageDetectorRbbox
-from ..registry import DETECTORS
+from ..builder import DETECTORS
 
 
-@DETECTORS.register_module
+@DETECTORS.register_module()
 class RetinaNetRbbox(SingleStageDetectorRbbox):
 
     def __init__(self,

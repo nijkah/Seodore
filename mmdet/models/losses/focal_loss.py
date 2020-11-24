@@ -1,10 +1,10 @@
 import torch.nn as nn
 from mmdet.core import weighted_sigmoid_focal_loss
 
-from ..registry import LOSSES
+from ..builder import LOSSES
 
 
-@LOSSES.register_module
+@LOSSES.register_module()
 class FocalLoss(nn.Module):
 
     def __init__(self,

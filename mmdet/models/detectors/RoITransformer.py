@@ -5,8 +5,8 @@ import torch.nn as nn
 
 from .base_new import BaseDetectorNew
 from .test_mixins import RPNTestMixin
-from .. import builder
-from ..registry import DETECTORS
+from ..builder import DETECTORS, build_backbone, build_head, build_neck, build_roi_extractor
+
 from mmdet.core import (build_assigner, bbox2roi, dbbox2roi, bbox2result, build_sampler,
                         dbbox2result, merge_aug_masks, roi2droi, mask2poly,
                         get_best_begin_point, polygonToRotRectangle_batch,
@@ -17,7 +17,8 @@ from mmdet.core import (bbox_mapping, merge_aug_proposals, merge_aug_bboxes,
                         merge_rotate_aug_bboxes, multiclass_nms_rbbox)
 import copy
 from mmdet.core import RotBox2Polys, polygonToRotRectangle_batch
-@DETECTORS.register_module
+
+@DETECTORS.register_module()
 class RoITransformer(BaseDetectorNew, RPNTestMixin):
 
     def __init__(self,
@@ -42,40 +43,40 @@ class RoITransformer(BaseDetectorNew, RPNTestMixin):
         assert rbbox_head is not None
         super(RoITransformer, self).__init__()
 
-        self.backbone = builder.build_backbone(backbone)
+        self.backbone = build_backbone(backbone)
 
         if neck is not None:
-            self.neck = builder.build_neck(neck)
+            self.neck = build_neck(neck)
 
         if rpn_head is not None:
-            self.rpn_head = builder.build_head(rpn_head)
+            self.rpn_head = build_head(rpn_head)
 
         if shared_head is not None:
-            self.shared_head = builder.build_shared_head(shared_head)
+            self.shared_head = build_shared_head(shared_head)
 
         if shared_head_rbbox is not None:
-            self.shared_head_rbbox = builder.build_shared_head(shared_head_rbbox)
+            self.shared_head_rbbox = build_shared_head(shared_head_rbbox)
 
         if bbox_head is not None:
-            self.bbox_roi_extractor = builder.build_roi_extractor(
+            self.bbox_roi_extractor = build_roi_extractor(
                 bbox_roi_extractor)
-            self.bbox_head = builder.build_head(bbox_head)
+            self.bbox_head = build_head(bbox_head)
         # import pdb
         # pdb.set_trace()
         if rbbox_head is not None:
-            self.rbbox_roi_extractor = builder.build_roi_extractor(
+            self.rbbox_roi_extractor = build_roi_extractor(
                 rbbox_roi_extractor)
-            self.rbbox_head = builder.build_head(rbbox_head)
+            self.rbbox_head = build_head(rbbox_head)
 
         if mask_head is not None:
             if mask_roi_extractor is not None:
-                self.mask_roi_extractor = builder.build_roi_extractor(
+                self.mask_roi_extractor = build_roi_extractor(
                     mask_roi_extractor)
                 self.share_roi_extractor = False
             else:
                 self.share_roi_extractor = True
                 self.mask_roi_extractor = self.rbbox_roi_extractor
-            self.mask_head = builder.build_head(mask_head)
+            self.mask_head = build_head(mask_head)
 
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
@@ -251,7 +252,7 @@ class RoITransformer(BaseDetectorNew, RPNTestMixin):
             x, img_meta, self.test_cfg.rpn) if proposals is None else proposals
 
         img_shape = img_meta[0]['img_shape']
-        scale_factor = img_meta[0]['scale_factor']
+        scale_factor = torch.tensor(img_meta[0]['scale_factor'])
 
         rcnn_test_cfg = self.test_cfg.rcnn
 

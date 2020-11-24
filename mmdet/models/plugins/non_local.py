@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
-from mmcv.cnn import constant_init, normal_init
-
-from ..utils import ConvModule
+from mmcv.cnn import constant_init, normal_init, ConvModule
 
 
 class NonLocal2D(nn.Module):

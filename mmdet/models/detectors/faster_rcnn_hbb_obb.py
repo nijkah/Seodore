@@ -6,11 +6,11 @@ from .base_new import BaseDetectorNew
 from .test_mixins import RPNTestMixin, BBoxTestMixin, MaskTestMixin, RBBoxTestMixin
 
 from .. import builder
-from ..registry import DETECTORS
+from ..builder import DETECTORS
 from mmdet.core import bbox2roi, bbox2result, build_assigner, build_sampler, dbbox2result
 
 
-@DETECTORS.register_module
+@DETECTORS.register_module()
 class FasterRCNNHBBOBB(BaseDetectorNew, RPNTestMixin, BBoxTestMixin,
                        RBBoxTestMixin, MaskTestMixin):
 

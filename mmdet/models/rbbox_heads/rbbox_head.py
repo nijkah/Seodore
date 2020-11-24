@@ -7,10 +7,10 @@ from mmdet.core import delta2dbbox, multiclass_nms_rbbox, \
     choose_best_Rroi_batch, delta2dbbox_v2, \
     Pesudomulticlass_nms_rbbox, delta2dbbox_v3, hbb2obb_v2
 from ..builder import build_loss
-from ..registry import HEADS
+from ..builder import HEADS
 
 
-@HEADS.register_module
+@HEADS.register_module()
 class BBoxHeadRbbox(nn.Module):
     """Simplest RoI head, with only two fc layers for classification and
     regression respectively"""
@@ -162,6 +162,8 @@ class BBoxHeadRbbox(nn.Module):
             losses['rbbox_acc'] = accuracy(cls_score, labels)
         if bbox_pred is not None:
             pos_inds = labels > 0
+            if pos_inds.sum() == 0:
+                return losses
             if self.reg_class_agnostic:
                 pos_bbox_pred = bbox_pred.view(bbox_pred.size(0), 5)[pos_inds]
             else:
@@ -257,6 +259,8 @@ class BBoxHeadRbbox(nn.Module):
             # TODO: add clip here
 
         if rescale:
+            c_device = dbboxes.device
+            scale_factor = scale_factor[0].to(c_device)
             # bboxes /= scale_factor
             # dbboxes[:, :4] /= scale_factor
             dbboxes[:, 0::5] /= scale_factor

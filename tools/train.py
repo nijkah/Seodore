@@ -6,9 +6,11 @@ import os
 import os.path as osp
 
 from mmcv import Config
+from mmcv.runner import init_dist
 from mmdet import __version__
-from mmdet.datasets import get_dataset
-from mmdet.apis import (train_detector, init_dist, set_random_seed)
+#from mmdet.datasets import get_dataset
+from mmdet.datasets import build_dataset
+from mmdet.apis import (train_detector, set_random_seed)
 from mmdet.utils import collect_env, get_root_logger
 from mmdet.models import build_detector
 import torch
@@ -24,12 +26,24 @@ def parse_args():
         '--validate',
         action='store_true',
         help='whether to evaluate the checkpoint during training')
-    parser.add_argument(
+    group_gpus = parser.add_mutually_exclusive_group()
+    group_gpus.add_argument(
         '--gpus',
         type=int,
-        default=1,
         help='number of gpus to use '
         '(only applicable to non-distributed training)')
+    group_gpus.add_argument(
+        '--gpu-ids',
+        type=int,
+        nargs='+',
+        help='ids of gpus to use '
+        '(only applicable to non-distributed training)')
+    #parser.add_argument(
+    #    '--gpus',
+    #    type=int,
+    #    default=1,
+    #    help='number of gpus to use '
+    #    '(only applicable to non-distributed training)')
     parser.add_argument('--seed', type=int, default=None, help='random seed')
     parser.add_argument(
         '--launcher',
@@ -56,7 +70,10 @@ def main():
         os.makedirs(cfg.work_dir)
     if args.resume_from is not None:
         cfg.resume_from = args.resume_from
-    cfg.gpus = args.gpus
+    if args.gpu_ids is not None:
+        cfg.gpu_ids = args.gpu_ids
+    else:
+        cfg.gpu_ids = range(1) if args.gpus is None else range(args.gpus)
 
     # init distributed env first, since logger depends on the dist info.
     if args.launcher == 'none':
@@ -89,11 +106,13 @@ def main():
     if args.seed is not None:
         logger.info('Set random seed to {}'.format(args.seed))
         set_random_seed(args.seed)
+    cfg.seed = args.seed
 
     model = build_detector(
         cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg)
 
-    train_dataset = get_dataset(cfg.data.train)
+    #train_dataset = get_dataset(cfg.data.train)
+    train_dataset = [build_dataset(cfg.data.train)]
 
     if cfg.checkpoint_config is not None:
         # save mmdet version, config file content and class names in
@@ -101,9 +120,9 @@ def main():
         cfg.checkpoint_config.meta = dict(
             mmdet_version=__version__,
             config=cfg.text,
-            CLASSES=train_dataset.CLASSES)
+            CLASSES=train_dataset[0].CLASSES)
     # add an attribute for visualization convenience
-    model.CLASSES = train_dataset.CLASSES
+    model.CLASSES = train_dataset[0].CLASSES
     train_detector(
         model,
         train_dataset,

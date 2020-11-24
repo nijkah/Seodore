@@ -1,8 +1,8 @@
 from .two_stage_rbbox import TwoStageDetectorRbbox
-from ..registry import DETECTORS
+from ..builder import DETECTORS
 
 
-@DETECTORS.register_module
+@DETECTORS.register_module()
 class FasterRCNNOBB(TwoStageDetectorRbbox):
 
     def __init__(self,

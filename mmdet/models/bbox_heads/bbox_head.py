@@ -4,10 +4,10 @@ import torch.nn.functional as F
 
 from mmdet.core import delta2bbox, multiclass_nms, bbox_target, accuracy
 from ..builder import build_loss
-from ..registry import HEADS
+from ..builder import HEADS
 
 
-@HEADS.register_module
+@HEADS.register_module()
 class BBoxHead(nn.Module):
     """Simplest RoI head, with only two fc layers for classification and
     regression respectively"""
@@ -183,7 +183,7 @@ class BBoxHead(nn.Module):
             keep_inds = pos_is_gts_.new_ones(num_rois)
             keep_inds[:len(pos_is_gts_)] = pos_keep
 
-            bboxes_list.append(bboxes[keep_inds])
+            bboxes_list.append(bboxes[keep_inds.type(torch.bool)])
 
         return bboxes_list
 

@@ -4,11 +4,12 @@ import torch.nn as nn
 from mmcv.cnn import constant_init, kaiming_init
 from mmcv.runner import load_checkpoint
 
-from ..backbones import ResNet, make_res_layer
-from ..registry import SHARED_HEADS
+from ..backbones import ResNet
+from mmdet.models.utils import ResLayer as _ResLayer
+from ..builder import SHARED_HEADS
 
 
-@SHARED_HEADS.register_module
+@SHARED_HEADS.register_module()
 class ResLayer(nn.Module):
 
     def __init__(self,
@@ -30,7 +31,7 @@ class ResLayer(nn.Module):
         planes = 64 * 2**stage
         inplanes = 64 * 2**(stage - 1) * block.expansion
 
-        res_layer = make_res_layer(
+        res_layer = _ResLayer(
             block,
             inplanes,
             planes,

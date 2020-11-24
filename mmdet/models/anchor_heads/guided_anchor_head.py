@@ -3,7 +3,7 @@ from __future__ import division
 import numpy as np
 import torch
 import torch.nn as nn
-from mmcv.cnn import normal_init
+from mmcv.cnn import bias_init_with_prob, normal_init
 
 from mmdet.core import (AnchorGenerator, anchor_target, anchor_inside_flags,
                         ga_loc_target, ga_shape_target, delta2bbox,
@@ -11,8 +11,7 @@ from mmdet.core import (AnchorGenerator, anchor_target, anchor_inside_flags,
 from mmdet.ops import DeformConv, MaskedConv2d
 from ..builder import build_loss
 from .anchor_head import AnchorHead
-from ..registry import HEADS
-from ..utils import bias_init_with_prob
+from ..builder import HEADS
 
 
 class FeatureAdaption(nn.Module):
@@ -57,7 +56,7 @@ class FeatureAdaption(nn.Module):
         return x
 
 
-@HEADS.register_module
+@HEADS.register_module()
 class GuidedAnchorHead(AnchorHead):
     """Guided-Anchor-based head (GA-RPN, GA-RetinaNet, etc.).
 

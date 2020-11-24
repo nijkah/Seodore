@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ..registry import LOSSES
+from ..builder import LOSSES
 
 
 def _expand_binary_labels(labels, label_weights, label_channels):
@@ -15,7 +15,7 @@ def _expand_binary_labels(labels, label_weights, label_channels):
     return bin_labels, bin_label_weights
 
 
-@LOSSES.register_module
+@LOSSES.register_module()
 class GHMC(nn.Module):
     """GHM Classification Loss.
 
@@ -94,7 +94,7 @@ class GHMC(nn.Module):
         return loss * self.loss_weight
 
 
-@LOSSES.register_module
+@LOSSES.register_module()
 class GHMR(nn.Module):
     """GHM Regression Loss.
 
